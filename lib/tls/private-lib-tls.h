@@ -80,6 +80,12 @@
   #else
    #include "openssl/ssl.h" /* wrapper !!!! */
   #endif
+  #elif defined(LWS_WITH_OPENHITLS)
+   #include <hitls/tls/hitls.h>
+   #include <hitls/tls/hitls_type.h>
+   #include <hitls/tls/hitls_cert.h>
+   #include <hitls/tls/hitls_session.h>
+   #include <hitls/bsl/bsl_uio.h>
   #else
    #include <openssl/ssl.h>
    #include <openssl/evp.h>
@@ -96,7 +102,7 @@
     #define EVP_MD_CTX_free EVP_MD_CTX_destroy
    #endif
    #include <openssl/x509v3.h>
-  #endif /* not mbedtls */
+  #endif /* not mbedtls/openhitls */
   #if defined(OPENSSL_VERSION_NUMBER)
    #if (OPENSSL_VERSION_NUMBER < 0x0009080afL)
 /*
@@ -134,10 +140,17 @@ lws_tls_restrict_return(struct lws *wsi);
 void
 lws_tls_restrict_return_handshake(struct lws *wsi);
 
+#if defined(LWS_WITH_OPENHITLS)
+typedef HITLS_Ctx lws_tls_conn;
+typedef HITLS_Config lws_tls_ctx;
+typedef BSL_UIO lws_tls_bio;
+typedef HITLS_CERT_X509 lws_tls_x509;
+#else
 typedef SSL lws_tls_conn;
 typedef SSL_CTX lws_tls_ctx;
 typedef BIO lws_tls_bio;
 typedef X509 lws_tls_x509;
+#endif
 
 #if defined(LWS_WITH_NETWORK)
 #include "private-network.h"
@@ -150,7 +163,7 @@ void
 lws_context_deinit_ssl_library(struct lws_context *context);
 #define LWS_SSL_ENABLED(vh) (vh && vh->tls.use_ssl)
 
-extern const struct lws_tls_ops tls_ops_openssl, tls_ops_mbedtls;
+extern const struct lws_tls_ops tls_ops_openssl, tls_ops_mbedtls, tls_ops_openhitls;
 
 struct lws_ec_valid_curves {
 	int id;

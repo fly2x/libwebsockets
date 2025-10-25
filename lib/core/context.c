@@ -944,6 +944,8 @@ lws_create_context(const struct lws_context_creation_info *info)
 	context->tls_ops = &tls_ops_mbedtls;
 
 	mbedtls_client_preload_filepath = info->mbedtls_client_preload_filepath;
+#elif defined(LWS_WITH_OPENHITLS)
+	context->tls_ops = &tls_ops_openhitls;
 #else
 	context->tls_ops = &tls_ops_openssl;
 #endif

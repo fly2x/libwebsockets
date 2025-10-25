@@ -68,6 +68,8 @@ struct lws_genhash_ctx {
 		mbedtls_sha512_context sha512; /* 384 also uses this */
 		const mbedtls_md_info_t *hmac;
         } u;
+#elif defined(LWS_WITH_OPENHITLS)
+        void *mdctx; /* CRYPT_EAL_MdCTX * - opaque to avoid header dependency */
 #else
         const EVP_MD *evp_type;
         EVP_MD_CTX *mdctx;
@@ -79,6 +81,8 @@ struct lws_genhmac_ctx {
 #if defined(LWS_WITH_MBEDTLS)
 	const mbedtls_md_info_t *hmac;
 	mbedtls_md_context_t ctx;
+#elif defined(LWS_WITH_OPENHITLS)
+	void *macctx; /* CRYPT_EAL_MacCtx * - opaque to avoid header dependency */
 #else
 	const EVP_MD *evp_type;
 

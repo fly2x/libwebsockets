@@ -105,6 +105,11 @@ if (LWS_WITH_MBEDTLS)
 	include_directories(${_CMAKE_INC_LIST})
 endif()
 
+if (LWS_WITH_OPENHITLS)
+	add_subdirectory(openhitls)
+	include_directories(${_CMAKE_INC_LIST})
+endif()
+
 # The base dir where the test-apps look for the SSL certs.
 set(LWS_OPENSSL_CLIENT_CERTS ../share CACHE PATH "Server SSL certificate directory")
 if (WIN32)
@@ -155,6 +160,20 @@ if (LWS_WITH_SSL)
 				tls/mbedtls/lws-genec.c
 				tls/mbedtls/lws-gencrypto.c)
 		endif()
+	elseif (LWS_WITH_OPENHITLS)
+		list(APPEND SOURCES
+			tls/openhitls/openhitls-tls.c
+			tls/openhitls/openhitls-x509.c
+			tls/openhitls/lws-genhash.c)
+		if (LWS_WITH_NETWORK)
+			list(APPEND SOURCES
+				tls/openhitls/openhitls-ssl.c)
+		endif()
+		if (LWS_WITH_TLS_SESSIONS)
+			list(APPEND SOURCES
+				tls/openhitls/openhitls-session.c)
+		endif()
+		# Other crypto operations not yet implemented for openHiTLS
 	else()
 		list(APPEND SOURCES
 			tls/openssl/openssl-tls.c
@@ -184,6 +203,9 @@ if (LWS_WITH_SSL)
 		if (LWS_WITH_MBEDTLS)
 			list(APPEND SOURCES
 				tls/mbedtls/mbedtls-server.c)
+		elseif (LWS_WITH_OPENHITLS)
+			list(APPEND SOURCES
+				tls/openhitls/openhitls-server.c)
 		else()
 			list(APPEND SOURCES
 				tls/openssl/openssl-server.c)
@@ -195,11 +217,14 @@ if (LWS_WITH_SSL)
 		if (LWS_WITH_MBEDTLS)
 			list(APPEND SOURCES
 				tls/mbedtls/mbedtls-client.c)
+		elseif (LWS_WITH_OPENHITLS)
+			list(APPEND SOURCES
+				tls/openhitls/openhitls-client.c)
 		else()
 			list(APPEND SOURCES
 				tls/openssl/openssl-client.c)
 		endif()
-		
+
 	endif()
 endif()
 
@@ -257,6 +282,17 @@ if (LWS_WITH_SSL)
 	endif()
 	
 	if (LWS_WITH_MBEDTLS)
+		set(chose_ssl 1)
+	endif()
+
+	if (LWS_WITH_OPENHITLS)
+		message("openHiTLS include dir: ${LWS_OPENHITLS_INCLUDE_DIRS}")
+		message("openHiTLS libraries: ${LWS_OPENHITLS_LIBRARIES}")
+
+		set(LWS_PUBLIC_INCLUDES ${LWS_PUBLIC_INCLUDES} "${LWS_OPENHITLS_INCLUDE_DIRS}")
+		set(LWS_PUBLIC_INCLUDES ${LWS_PUBLIC_INCLUDES} PARENT_SCOPE)
+
+		list(INSERT LIB_LIST 0 "${LWS_OPENHITLS_LIBRARIES}")
 		set(chose_ssl 1)
 	endif()
 

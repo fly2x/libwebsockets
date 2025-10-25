@@ -411,9 +411,31 @@ if (LWS_SSL_SERVER_WITH_ECDH_CERT)
 endif()
 
 # LWS_OPENSSL_SUPPORT deprecated... use LWS_WITH_TLS
-if (LWS_WITH_SSL OR LWS_WITH_MBEDTLS)
+if (LWS_WITH_SSL OR LWS_WITH_MBEDTLS OR LWS_WITH_OPENHITLS)
 	set(LWS_OPENSSL_SUPPORT 1)
 	set(LWS_WITH_TLS 1)
+endif()
+
+# Check mutual exclusivity of TLS backends
+set(TLS_BACKEND_COUNT 0)
+if (LWS_WITH_MBEDTLS)
+	math(EXPR TLS_BACKEND_COUNT "${TLS_BACKEND_COUNT}+1")
+endif()
+if (LWS_WITH_OPENHITLS)
+	math(EXPR TLS_BACKEND_COUNT "${TLS_BACKEND_COUNT}+1")
+endif()
+if (LWS_WITH_WOLFSSL)
+	math(EXPR TLS_BACKEND_COUNT "${TLS_BACKEND_COUNT}+1")
+endif()
+if (LWS_WITH_BORINGSSL)
+	math(EXPR TLS_BACKEND_COUNT "${TLS_BACKEND_COUNT}+1")
+endif()
+if (LWS_WITH_CYASSL)
+	math(EXPR TLS_BACKEND_COUNT "${TLS_BACKEND_COUNT}+1")
+endif()
+
+if (TLS_BACKEND_COUNT GREATER 1)
+	message(FATAL_ERROR "Only one TLS backend can be selected at a time. Please choose either mbedTLS, openHiTLS, wolfSSL, BoringSSL, CyaSSL, or OpenSSL (default)")
 endif()
 
 if (NOT LWS_WITH_SSL)

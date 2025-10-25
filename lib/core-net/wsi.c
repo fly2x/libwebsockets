@@ -632,7 +632,7 @@ lws_is_ssl(struct lws *wsi)
 #endif
 }
 
-#if defined(LWS_WITH_TLS) && !defined(LWS_WITH_MBEDTLS)
+#if defined(LWS_WITH_TLS) && !defined(LWS_WITH_MBEDTLS) && !defined(LWS_WITH_OPENHITLS)
 lws_tls_conn*
 lws_get_ssl(struct lws *wsi)
 {

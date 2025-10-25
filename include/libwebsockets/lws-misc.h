@@ -1176,7 +1176,7 @@ struct lws_wifi_scan { /* generic wlan scan item */
 	uint8_t authmode;
 };
 
-#if defined(LWS_WITH_TLS) && !defined(LWS_WITH_MBEDTLS)
+#if defined(LWS_WITH_TLS) && !defined(LWS_WITH_MBEDTLS) && !defined(LWS_WITH_OPENHITLS)
 /**
  * lws_get_ssl() - Return wsi's SSL context structure
  * \param wsi:	websocket connection

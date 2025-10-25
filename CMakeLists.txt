@@ -215,6 +215,7 @@ option(LWS_CTEST_INTERNET_AVAILABLE "CTest will performs tests that need the Int
 #
 option(LWS_WITH_SSL "Include SSL support (defaults to OpenSSL or similar, mbedTLS if LWS_WITH_MBEDTLS is set)" ON)
 option(LWS_WITH_MBEDTLS "Use mbedTLS (>=2.0) replacement for OpenSSL. When setting this, you also may need to specify LWS_MBEDTLS_LIBRARIES and LWS_MBEDTLS_INCLUDE_DIRS" OFF)
+option(LWS_WITH_OPENHITLS "Use openHiTLS replacement for OpenSSL. When setting this, you also may need to specify LWS_OPENHITLS_LIBRARIES and LWS_OPENHITLS_INCLUDE_DIRS" OFF)
 option(LWS_WITH_BORINGSSL "Use BoringSSL replacement for OpenSSL" OFF)
 option(LWS_WITH_CYASSL "Use CyaSSL replacement for OpenSSL. When setting this, you also need to specify LWS_CYASSL_LIBRARIES and LWS_CYASSL_INCLUDE_DIRS" OFF)
 option(LWS_WITH_WOLFSSL "Use wolfSSL replacement for OpenSSL. When setting this, you also may need to specify LWS_WOLFSSL_LIBRARIES and LWS_WOLFSSL_INCLUDE_DIRS" OFF)
@@ -571,6 +572,8 @@ set(LWS_SQLITE3_LIBRARIES CACHE PATH "Path to the sqlite3 library")
 set(LWS_SQLITE3_INCLUDE_DIRS CACHE PATH "Path to the sqlite3 include directory")
 set(LWS_LIBMOUNT_INCLUDE_DIRS CACHE PATH "Path to the libmount include directory")
 set(LWS_LIBMOUNT_LIBRARIES CACHE PATH "Path to the libmount library")
+set(LWS_OPENHITLS_LIBRARIES CACHE PATH "Path to the openHiTLS library")
+set(LWS_OPENHITLS_INCLUDE_DIRS CACHE PATH "Path to the openHiTLS include directory")
 # on unix, these are in the toolchain.  On win32 you have to put them somewhere
 # yourself and point to them here
 set(LWS_EXT_PTHREAD_INCLUDE_DIR CACHE PATH "Path to an external pthreads include directory")
@@ -1066,6 +1069,23 @@ if (LWS_WITH_SQLITE3)
 	message("sqlite3 libraries: ${SQLITE3_LIBRARIES}")
 	include_directories("${SQLITE3_INCLUDE_DIRS}")
 	list(APPEND LIB_LIST ${SQLITE3_LIBRARIES})
+endif()
+
+if (LWS_WITH_OPENHITLS)
+	# Auto-detect openHiTLS if paths not specified
+	if ("${LWS_OPENHITLS_LIBRARIES}" STREQUAL "" OR "${LWS_OPENHITLS_INCLUDE_DIRS}" STREQUAL "")
+		find_path(LWS_OPENHITLS_INCLUDE_DIRS NAMES hitls/tls/hitls.h)
+		find_library(LWS_OPENHITLS_LIBRARIES NAMES hitls)
+	endif()
+
+	if (NOT LWS_OPENHITLS_INCLUDE_DIRS OR NOT LWS_OPENHITLS_LIBRARIES)
+		message(FATAL_ERROR "openHiTLS not found. Please specify LWS_OPENHITLS_INCLUDE_DIRS and LWS_OPENHITLS_LIBRARIES")
+	endif()
+
+	message("openHiTLS include dir: ${LWS_OPENHITLS_INCLUDE_DIRS}")
+	message("openHiTLS libraries: ${LWS_OPENHITLS_LIBRARIES}")
+	include_directories("${LWS_OPENHITLS_INCLUDE_DIRS}")
+	list(APPEND LIB_LIST ${LWS_OPENHITLS_LIBRARIES})
 endif()
 
 

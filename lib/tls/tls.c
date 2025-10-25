@@ -27,6 +27,7 @@
 
 #if defined(LWS_HAVE_SSL_CTX_set_keylog_callback) && defined(LWS_WITH_NETWORK) && \
 	defined(LWS_WITH_TLS) && !defined(LWS_WITH_MBEDTLS) && \
+	!defined(LWS_WITH_OPENHITLS) && \
 	(!defined(LWS_WITHOUT_CLIENT) || !defined(LWS_WITHOUT_SERVER))
 void
 lws_klog_dump(const SSL *ssl, const char *line)
@@ -82,8 +83,8 @@ lws_klog_dump(const SSL *ssl, const char *line)
 
 
 #if defined(LWS_WITH_NETWORK)
-#if defined(LWS_WITH_MBEDTLS) || (defined(OPENSSL_VERSION_NUMBER) && \
-				  OPENSSL_VERSION_NUMBER >= 0x10002000L)
+#if !defined(LWS_WITH_OPENHITLS) && (defined(LWS_WITH_MBEDTLS) || (defined(OPENSSL_VERSION_NUMBER) && \
+				  OPENSSL_VERSION_NUMBER >= 0x10002000L))
 static int
 alpn_cb(SSL *s, const unsigned char **out, unsigned char *outlen,
 	const unsigned char *in, unsigned int inlen, void *arg)
@@ -211,8 +212,8 @@ lws_tls_restrict_return(struct lws *wsi)
 void
 lws_context_init_alpn(struct lws_vhost *vhost)
 {
-#if defined(LWS_WITH_MBEDTLS) || (defined(OPENSSL_VERSION_NUMBER) && \
-				  OPENSSL_VERSION_NUMBER >= 0x10002000L)
+#if !defined(LWS_WITH_OPENHITLS) && (defined(LWS_WITH_MBEDTLS) || (defined(OPENSSL_VERSION_NUMBER) && \
+				  OPENSSL_VERSION_NUMBER >= 0x10002000L))
 	const char *alpn_comma = vhost->context->tls.alpn_default;
 
 	if (vhost->tls.alpn)
@@ -237,8 +238,8 @@ lws_context_init_alpn(struct lws_vhost *vhost)
 int
 lws_tls_server_conn_alpn(struct lws *wsi)
 {
-#if defined(LWS_WITH_MBEDTLS) || (defined(OPENSSL_VERSION_NUMBER) && \
-				  OPENSSL_VERSION_NUMBER >= 0x10002000L)
+#if !defined(LWS_WITH_OPENHITLS) && (defined(LWS_WITH_MBEDTLS) || (defined(OPENSSL_VERSION_NUMBER) && \
+				  OPENSSL_VERSION_NUMBER >= 0x10002000L))
 	const unsigned char *name = NULL;
 	char cstr[10];
 	unsigned len;
