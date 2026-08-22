@@ -502,6 +502,10 @@ lws_tls_server_abort_connection(struct lws *wsi)
 {
 	BSL_UIO *uio = NULL;
 
+#if defined(LWS_ROLE_QUIC)
+	lws_openhitls_quic_bio_free(wsi);
+#endif
+
 	/*
 	 * HITLS_Close() (called from __lws_tls_shutdown) has been observed to
 	 * corrupt heap metadata.  Skip it; HITLS_Free() handles full cleanup.

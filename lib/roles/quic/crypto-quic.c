@@ -506,6 +506,15 @@ lws_quic_set_keys(struct lws *wsi, enum lws_tls_quic_secret_type type, const uin
 			prot = dt.data;
 			plen = dt.size;
 		}
+#elif defined(LWS_WITH_OPENHITLS)
+		uint8_t *sel = NULL;
+		uint32_t sel_len = 0;
+		if (HITLS_GetSelectedAlpnProto(wsi->tls.ssl, &sel,
+					       &sel_len) == HITLS_SUCCESS &&
+		    sel && sel_len) {
+			prot = sel;
+			plen = sel_len;
+		}
 #endif
 		if (plen) {
 			lws_strncpy(wsi->alpn, (const char *)prot, plen + 1);
@@ -1154,6 +1163,16 @@ error_handling:
 			if (gnutls_alpn_get_selected_protocol(wsi->tls.ssl, &dt) >= 0) {
 				prot = dt.data;
 				plen = dt.size;
+			}
+#elif defined(LWS_WITH_OPENHITLS)
+			uint8_t *sel = NULL;
+			uint32_t sel_len = 0;
+			if (HITLS_GetSelectedAlpnProto(wsi->tls.ssl, &sel,
+						       &sel_len) ==
+							HITLS_SUCCESS &&
+			    sel && sel_len) {
+				prot = sel;
+				plen = sel_len;
 			}
 #elif defined(LWS_HAVE_SSL_get0_alpn_selected) || defined(OPENSSL_IS_AWSLC)
 			SSL_get0_alpn_selected(wsi->tls.ssl, &prot, &plen);

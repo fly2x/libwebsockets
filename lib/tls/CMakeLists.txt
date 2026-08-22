@@ -239,11 +239,48 @@ if (LWS_WITH_SSL)
 				tls/schannel/lws-gendtls.c)
 		endif()
 	elseif (LWS_WITH_OPENHITLS)
+		#
+		# mirror the flat-include layout the real build uses (see the
+		# include_directories handling further down): each include dir
+		# may carry tls/ bsl/ etc subdirs holding the actual headers
+		#
+		set(_OPENHITLS_PROBE_INCLUDES ${OPENHITLS_INCLUDE_DIRS})
+		foreach(_openhitls_probe_inc ${OPENHITLS_INCLUDE_DIRS})
+			foreach(_openhitls_probe_sub tls bsl crypto pki auth)
+				if (EXISTS "${_openhitls_probe_inc}/${_openhitls_probe_sub}")
+					list(APPEND _OPENHITLS_PROBE_INCLUDES "${_openhitls_probe_inc}/${_openhitls_probe_sub}")
+				endif()
+			endforeach()
+		endforeach()
+
+		set(CMAKE_REQUIRED_INCLUDES_TEMP ${CMAKE_REQUIRED_INCLUDES})
+		set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${_OPENHITLS_PROBE_INCLUDES})
+		set(CMAKE_REQUIRED_LIBRARIES_TEMP ${CMAKE_REQUIRED_LIBRARIES})
+		set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${OPENHITLS_LIBRARIES})
+		CHECK_C_SOURCE_COMPILES("#include <hitls_quic_tls.h>\nint main(void) { void *v = (void *)HITLS_QUIC_TLS_SetQuicTlsMethod; return !!v; }\n" LWS_HAVE_HITLS_QUIC_TLS)
+		set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES_TEMP})
+		set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_TEMP})
+
+		if (LWS_ROLE_QUIC AND NOT LWS_HAVE_HITLS_QUIC_TLS)
+			message(WARNING "openHiTLS build lacks the QUIC-TLS API (rebuild openHiTLS with -DHITLS_TLS_FEATURE_QUIC_TLS=ON); disabling QUIC and HTTP3")
+			set(LWS_ROLE_QUIC 0)
+			set(LWS_WITH_HTTP3 0)
+			set(LWS_ROLE_H3 0)
+			set(LWS_ROLE_WT 0)
+			set(LWS_ROLE_QUIC 0 PARENT_SCOPE)
+			set(LWS_WITH_HTTP3 0 PARENT_SCOPE)
+			set(LWS_ROLE_H3 0 PARENT_SCOPE)
+			set(LWS_ROLE_WT 0 PARENT_SCOPE)
+		endif()
+
 		list(APPEND SOURCES
 			tls/openhitls/openhitls-tls.c
 			tls/openhitls/openhitls-session.c
 			tls/openhitls/openhitls-ssl.c
 			tls/openhitls/openhitls-x509.c)
+		if (LWS_ROLE_QUIC AND LWS_WITH_NETWORK)
+			list(APPEND SOURCES tls/openhitls/openhitls-quic.c)
+		endif()
 		if (NOT LWS_WITHOUT_SERVER)
 			list(APPEND SOURCES
 				tls/openhitls/openhitls-server.c)

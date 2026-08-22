@@ -118,6 +118,11 @@ lws_openhitls_describe_cipher(struct lws *wsi)
 
 	lwsl_info("%s: %s: %s, %s, 0x%x, %s\n", __func__, lws_wsi_tag(wsi),
 		  name, std_name, (unsigned int)version, desc);
+	/* lwsl_info() can be compiled out (eg, Release log levels) */
+	(void)name;
+	(void)std_name;
+	(void)desc;
+	(void)version;
 #endif
 	return 0;
 }
@@ -478,6 +483,14 @@ lws_ssl_close(struct lws *wsi)
 {
 	lws_sockfd_type n = LWS_SOCK_INVALID;
 	BSL_UIO *uio;
+
+#if defined(LWS_ROLE_QUIC)
+	/*
+	 * before the !tls.ssl early-out: a QUIC wsi can have allocated
+	 * quic_tp_send / quic_tp_recv before any HITLS_Ctx existed
+	 */
+	lws_openhitls_quic_bio_free(wsi);
+#endif
 
 	if (!wsi->tls.ssl) {
 		return 0;

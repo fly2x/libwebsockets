@@ -77,6 +77,11 @@ struct lws_tls_client_reuse {
 int
 lws_openhitls_describe_cipher(struct lws *wsi);
 
+#if defined(LWS_ROLE_QUIC)
+void
+lws_openhitls_quic_bio_free(struct lws *wsi);
+#endif
+
 #if defined(LWS_WITH_TLS_KEYLOG)
 void
 lws_openhitls_klog_dump(HITLS_Ctx *ctx, const char *line);

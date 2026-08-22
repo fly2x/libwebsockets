@@ -22,7 +22,7 @@ Lws has combined support for "happy eyeballs" client connection optimization.  I
 
 ## Only some TLS libraries support Quic compatibly with lws
 
- - TLS libraries compatible with h3 + lws: Gnutls, Boringssl, Libressl, AWS-LC, WolfSSL, schannel
+ - TLS libraries compatible with h3 + lws: Gnutls, Boringssl, Libressl, AWS-LC, WolfSSL, schannel, openHiTLS (when built with its QUIC-TLS feature)
  - On Windows, the default is now schannel, the built-in tls library.
  - OpenSSL is not compatible with lws quic/h3.  This was the default for lws, it still is for LWS_WITH_HTTP3=0
  - With LWS_WITH_HTTP3=1 on non-windows, then the new default is gnutls.  This is very mature and supported everywhere.
@@ -233,6 +233,34 @@ SChannel is native to Windows, so no third-party TLS library compilation is requ
     cmake .. -DLWS_WITH_SCHANNEL=ON -DLWS_ROLE_QUIC=ON
     cmake --build . --config Release
     ```
+
+## 9. openHiTLS
+
+openHiTLS provides a BoringSSL-style QUIC-TLS push API, but it is not built
+by default: openHiTLS itself must be configured with
+`-DHITLS_TLS_FEATURE_QUIC_TLS=ON`.  lws probes for the API at cmake time
+(`LWS_HAVE_HITLS_QUIC_TLS`); if the installed openHiTLS lacks it, QUIC and
+HTTP/3 are disabled with a warning.
+
+*   **Source:** `git clone https://gitcode.com/openhitls/openhitls.git` (mirrored at https://github.com/openhitls/openhitls.git)
+*   **Building openHiTLS:**
+    ```bash
+    cd openhitls && mkdir -p build && cd build
+    cmake .. -DHITLS_TLS_FEATURE_QUIC_TLS=ON -DCMAKE_BUILD_TYPE=Release
+    make -j && make install
+    ```
+*   **Building lws:**
+    ```bash
+    cmake .. \
+        -DLWS_WITH_OPENHITLS=ON \
+        -DLWS_WITH_HTTP3=ON
+    make -j
+    ```
+    If openHiTLS is installed to a prefix, point lws at it with
+    `-DOPENHITLS_INCLUDE_DIRS=...` / `-DOPENHITLS_LIBRARIES=...` as described
+    in README.build.md.
+
+    Note the openHiTLS QUIC-TLS API does not support 0-RTT early data yet.
 
 ---
 
